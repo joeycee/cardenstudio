@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { Container } from "@/components/ui/container";
 import { getBlogPost } from "@/lib/api";
-import { formatDate, resolveAssetUrl, splitParagraphs } from "@/lib/utils";
+import { formatDate, resolveAssetUrl } from "@/lib/utils";
 import { BlogPost } from "@/types/api";
 
 type BlogDetailPageProps = {
@@ -36,7 +36,6 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   }
 
   const imageUrl = resolveAssetUrl(post.featured_image);
-  const paragraphs = splitParagraphs(post.content);
   const publishedDate = formatDate(post.published_at ?? post.created_at);
 
   return (
@@ -57,11 +56,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             <img alt={post.title} className="h-full w-full object-cover" src={imageUrl} />
           </div>
         ) : null}
-        <div className="prose-copy mt-12 space-y-0 text-[1.05rem] leading-9 text-[var(--color-ink)]">
-          {paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
+        <div
+          className="prose-copy mt-12 space-y-0 text-[1.05rem] leading-9 text-[var(--color-ink)]"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       </Container>
     </article>
   );
