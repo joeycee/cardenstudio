@@ -6,7 +6,7 @@ export function Logo() {
       type="image/svg+xml"
       data="/cardenstudio_logo_v2.svg"
       aria-label="Carden Studio"
-      className="pointer-events-none h-10 w-auto sm:h-12"
+      className="pointer-events-none block h-10 max-w-full w-auto sm:h-12"
     />
   );
 }
