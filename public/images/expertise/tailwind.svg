@@ -1,0 +1,5 @@
+<svg width="132" height="40" viewBox="0 0 132 40" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 23C15 18 18 16 22 16C28 16 29 24 34 24C37 24 39 22 41 19C38 24 35 26 31 26C25 26 24 18 19 18C16 18 14 20 12 23Z" fill="#7FA3B5"/>
+  <path d="M18 29C21 24 24 22 28 22C34 22 35 30 40 30C43 30 45 28 47 25C44 30 41 32 37 32C31 32 30 24 25 24C22 24 20 26 18 29Z" fill="#7FA3B5"/>
+  <text x="56" y="24" fill="#E6ECEF" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700">Tailwind</text>
+</svg>

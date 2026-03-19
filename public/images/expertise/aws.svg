@@ -1,0 +1,5 @@
+<svg width="132" height="40" viewBox="0 0 132 40" xmlns="http://www.w3.org/2000/svg">
+  <rect width="132" height="40" rx="12" fill="none"/>
+  <text x="14" y="25" fill="#E6ECEF" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">AWS</text>
+  <path d="M14 31C26 36 46 36 60 29" stroke="#D17942" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
