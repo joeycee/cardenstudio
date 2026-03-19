@@ -20,6 +20,7 @@ const initialForm: ContactPayload = {
 declare global {
   interface Window {
     grecaptcha?: {
+      ready?: (callback: () => void) => void;
       render: (
         container: string | HTMLElement,
         parameters: {
@@ -45,8 +46,8 @@ export function ContactForm() {
   const [form, setForm] = useState<ContactPayload>(initialForm);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaScriptLoaded, setRecaptchaScriptLoaded] = useState(false);
   const widgetIdRef = useRef<number | null>(null);
   const recaptchaElementId = useId().replace(/:/g, "");
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY?.trim() ?? "";
@@ -55,29 +56,56 @@ export function ContactForm() {
   const requireRecaptcha = isProduction || recaptchaEnabled;
 
   useEffect(() => {
-    if (!recaptchaEnabled || !recaptchaReady || !window.grecaptcha || widgetIdRef.current !== null) {
+    if (!recaptchaEnabled || !recaptchaScriptLoaded || widgetIdRef.current !== null) {
       return;
     }
 
-    widgetIdRef.current = window.grecaptcha.render(recaptchaElementId, {
-      sitekey: siteKey,
-      callback: (token: string) => {
-        setRecaptchaToken(token);
-        setForm((current) => ({ ...current, recaptcha_token: token }));
-      },
-      "expired-callback": () => {
-        setRecaptchaToken("");
-        setForm((current) => ({ ...current, recaptcha_token: "" }));
-      },
-      "error-callback": () => {
-        setRecaptchaToken("");
-        setForm((current) => ({ ...current, recaptcha_token: "" }));
-        setStatus("error");
-        setMessage("reCAPTCHA failed to load. Please refresh and try again.");
-      },
-    });
+    let cancelled = false;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  }, [recaptchaElementId, recaptchaEnabled, recaptchaReady, siteKey]);
+    const renderWidget = () => {
+      if (cancelled || widgetIdRef.current !== null) {
+        return;
+      }
+
+      const grecaptcha = window.grecaptcha;
+      if (!grecaptcha || typeof grecaptcha.render !== "function") {
+        retryTimeout = setTimeout(renderWidget, 100);
+        return;
+      }
+
+      widgetIdRef.current = grecaptcha.render(recaptchaElementId, {
+        sitekey: siteKey,
+        callback: (token: string) => {
+          setRecaptchaToken(token);
+          setForm((current) => ({ ...current, recaptcha_token: token }));
+        },
+        "expired-callback": () => {
+          setRecaptchaToken("");
+          setForm((current) => ({ ...current, recaptcha_token: "" }));
+        },
+        "error-callback": () => {
+          setRecaptchaToken("");
+          setForm((current) => ({ ...current, recaptcha_token: "" }));
+          setStatus("error");
+          setMessage("reCAPTCHA failed to load. Please refresh and try again.");
+        },
+      });
+    };
+
+    if (typeof window.grecaptcha?.ready === "function") {
+      window.grecaptcha.ready(renderWidget);
+    } else {
+      renderWidget();
+    }
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+    };
+  }, [recaptchaElementId, recaptchaEnabled, recaptchaScriptLoaded, siteKey]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -130,7 +158,7 @@ export function ContactForm() {
         <Script
           src="https://www.google.com/recaptcha/api.js?render=explicit"
           strategy="afterInteractive"
-          onLoad={() => setRecaptchaReady(true)}
+          onLoad={() => setRecaptchaScriptLoaded(true)}
         />
       )}
       <form className="space-y-5" onSubmit={handleSubmit}>
