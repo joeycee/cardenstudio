@@ -1,123 +1,380 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AnimatedBlock } from "./animated-block";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { getPortfolioProjectById } from "@/lib/api";
 import { formatDate, resolveAssetUrl, splitParagraphs } from "@/lib/utils";
 
+/* ─── types ─── */
 type WorkDetailPageProps = {
   params: Promise<{ id: string }>;
 };
 
+/* ─── metadata (server) ─── */
 export async function generateMetadata({ params }: WorkDetailPageProps) {
   try {
     const { id } = await params;
     const project = await getPortfolioProjectById(id);
-
-    if (!project) {
-      return {
-        title: "Work",
-      };
-    }
-
-    return {
-      title: project.title,
-      description: project.short_description,
-    };
+    if (!project) return { title: "Work" };
+    return { title: project.title, description: project.short_description };
   } catch {
-    return {
-      title: "Work",
-    };
+    return { title: "Work" };
   }
 }
 
+/* ─── page ─── */
 export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
   const { id } = await params;
   const project = await getPortfolioProjectById(id);
-
-  if (!project) {
-    notFound();
-  }
+  if (!project) notFound();
 
   const imageUrl = resolveAssetUrl(project.featured_image);
   const paragraphs = splitParagraphs(project.full_description);
   const createdDate = formatDate(project.created_at);
 
   return (
-    <article className="pb-20 pt-20 sm:pt-24">
-      <Container className="max-w-5xl">
-        <Link
-          className="inline-flex text-sm font-semibold text-[var(--color-accent)] transition hover:opacity-70"
-          href="/work"
-        >
-          Back to work
-        </Link>
+    <>
+      {/* inject styles once */}
+      <style>{css}</style>
 
-        <p className="mt-8 text-xs font-semibold uppercase tracking-[0.32em] text-[var(--color-muted)]">
-          {project.featured ? "Featured project" : "Project"}
-        </p>
-        <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-[var(--color-ink)] sm:text-5xl">
-          {project.title}
-        </h1>
-        <p className="mt-8 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">
-          {project.short_description}
-        </p>
+      <article className="wdp-root">
+        <Container className="wdp-container">
 
-        <div className="mt-10 flex flex-wrap gap-4">
-          {project.project_url ? (
-            <Button href={project.project_url}>Visit project</Button>
-          ) : null}
-          {project.github_url ? (
-            <Button href={project.github_url} variant="secondary">
-              View GitHub
-            </Button>
-          ) : null}
-        </div>
+          {/* ── back link ── */}
+          <AnimatedBlock delay={0} className="wdp-back-wrap">
+            <Link className="wdp-back" href="/work">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back to work
+            </Link>
+          </AnimatedBlock>
 
-        {imageUrl ? (
-          <div className="mt-12 overflow-hidden rounded-[2rem] border border-[var(--color-line)] bg-[var(--color-surface)]">
-            <img alt={project.title} className="h-full w-full object-cover" src={imageUrl} />
-          </div>
-        ) : null}
-
-        <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="prose-copy space-y-0 text-[1.05rem] leading-9 text-[var(--color-ink)]">
-            {paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-
-          <Card className="h-fit">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-muted)]">
-              Project details
+          {/* ── eyebrow + title ── */}
+          <AnimatedBlock delay={80} className="wdp-header">
+            <p className="wdp-eyebrow">
+              {project.featured ? "Featured project" : "Project"}
             </p>
-            <div className="mt-6 space-y-5">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
-                  ID
-                </p>
-                <p className="mt-2 text-sm text-[var(--color-ink)]">{project.id}</p>
+            <h1 className="wdp-title">{project.title}</h1>
+            <p className="wdp-subtitle">{project.short_description}</p>
+          </AnimatedBlock>
+
+          {/* ── cta buttons ── */}
+          <AnimatedBlock delay={160} className="wdp-actions">
+            {project.project_url && (
+              <Button href={project.project_url} className="wdp-btn wdp-btn--primary">
+                Visit project
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+                  <path d="M2 11L11 2M11 2H5M11 2V8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Button>
+            )}
+            {project.github_url && (
+              <Button href={project.github_url} variant="secondary" className="wdp-btn wdp-btn--secondary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                </svg>
+                View GitHub
+              </Button>
+            )}
+          </AnimatedBlock>
+
+          {/* ── hero image ── */}
+          {imageUrl && (
+            <AnimatedBlock delay={240} className="wdp-image-wrap">
+              <div className="wdp-image-inner">
+                <img alt={project.title} className="wdp-image" src={imageUrl} />
+                <div className="wdp-image-overlay" aria-hidden />
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
-                  Slug
-                </p>
-                <p className="mt-2 break-all text-sm text-[var(--color-ink)]">{project.slug}</p>
+              {project.featured && (
+                <span className="wdp-featured-badge">Featured</span>
+              )}
+            </AnimatedBlock>
+          )}
+
+          {/* ── body + sidebar ── */}
+          <div className="wdp-body">
+
+            {/* prose */}
+            <AnimatedBlock delay={320} className="wdp-prose">
+              {paragraphs.map((p, i) => (
+                <p key={i} className="wdp-paragraph">{p}</p>
+              ))}
+            </AnimatedBlock>
+
+            {/* sidebar */}
+            <AnimatedBlock delay={400} className="wdp-sidebar">
+              <div className="wdp-card">
+                <p className="wdp-card-heading">Project details</p>
+
+                <dl className="wdp-dl">
+                  <div className="wdp-dl-row">
+                    <dt className="wdp-dt">ID</dt>
+                    <dd className="wdp-dd">{project.id}</dd>
+                  </div>
+                  <div className="wdp-dl-row">
+                    <dt className="wdp-dt">Slug</dt>
+                    <dd className="wdp-dd wdp-dd--break">{project.slug}</dd>
+                  </div>
+                  {createdDate && (
+                    <div className="wdp-dl-row">
+                      <dt className="wdp-dt">Added</dt>
+                      <dd className="wdp-dd">{createdDate}</dd>
+                    </div>
+                  )}
+                  <div className="wdp-dl-row">
+                    <dt className="wdp-dt">Status</dt>
+                    <dd className="wdp-dd">
+                      <span className="wdp-status">
+                        <span className="wdp-status-dot" aria-hidden />
+                        Active
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+
+                {/* divider */}
+                <div className="wdp-divider" aria-hidden />
+
+                <a href={project.project_url ?? "#"} className="wdp-card-cta">
+                  Open project
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path d="M1 11L11 1M11 1H4M11 1V8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
               </div>
-              {createdDate ? (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
-                    Added
-                  </p>
-                  <p className="mt-2 text-sm text-[var(--color-ink)]">{createdDate}</p>
-                </div>
-              ) : null}
-            </div>
-          </Card>
-        </div>
-      </Container>
-    </article>
+            </AnimatedBlock>
+
+          </div>
+        </Container>
+      </article>
+    </>
   );
 }
+
+/* ─── scoped CSS ─── */
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+
+  .wdp-root {
+    padding: 5rem 0 6rem;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--color-background, #fafaf8);
+    min-height: 100vh;
+  }
+
+  .wdp-container {
+    max-width: 68rem !important;
+  }
+
+  /* back */
+  .wdp-back-wrap { margin-bottom: 3rem; }
+  .wdp-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--color-muted, #888);
+    text-decoration: none;
+    transition: color 0.2s, gap 0.2s;
+  }
+  .wdp-back:hover { color: var(--color-ink, #111); gap: 0.25rem; }
+  .wdp-back svg { flex-shrink: 0; }
+
+  /* header */
+  .wdp-header { margin-bottom: 2.5rem; }
+  .wdp-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-accent, #4f6ef7);
+    margin: 0 0 1.1rem;
+  }
+  .wdp-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #111);
+    margin: 0 0 1.25rem;
+    max-width: 38rem;
+  }
+  .wdp-subtitle {
+    font-size: 1.0625rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--color-muted, #666);
+    margin: 0;
+    max-width: 36rem;
+  }
+
+  /* actions */
+  .wdp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 3rem;
+  }
+  .wdp-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.65rem 1.2rem !important;
+    transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s !important;
+  }
+  .wdp-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .wdp-btn:active { transform: translateY(0); }
+
+  /* image */
+  .wdp-image-wrap {
+    position: relative;
+    margin-bottom: 4rem;
+  }
+  .wdp-image-inner {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    border: 1px solid var(--color-line, #e8e8e4);
+    background: var(--color-surface, #f3f3f0);
+    aspect-ratio: 16/9;
+  }
+  .wdp-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .wdp-image-inner:hover .wdp-image { transform: scale(1.025); }
+  .wdp-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.12));
+    pointer-events: none;
+  }
+  .wdp-featured-badge {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    color: var(--color-ink, #111);
+    padding: 0.35rem 0.85rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.6);
+  }
+
+  /* body grid */
+  .wdp-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  @media (min-width: 900px) {
+    .wdp-body { grid-template-columns: minmax(0, 1fr) 22rem; gap: 5rem; }
+  }
+
+  /* prose */
+  .wdp-prose {}
+  .wdp-paragraph {
+    font-size: 1.0625rem;
+    font-weight: 300;
+    line-height: 1.85;
+    color: var(--color-ink, #222);
+    margin: 0 0 1.5rem;
+  }
+  .wdp-paragraph:last-child { margin-bottom: 0; }
+
+  /* sidebar card */
+  .wdp-card {
+    background: var(--color-surface, #f5f5f2);
+    border: 1px solid var(--color-line, #e6e6e2);
+    border-radius: 1rem;
+    padding: 1.75rem;
+    position: sticky;
+    top: 2rem;
+  }
+  .wdp-card-heading {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-muted, #999);
+    margin: 0 0 1.5rem;
+  }
+  .wdp-dl { margin: 0; }
+  .wdp-dl-row {
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--color-line, #ececea);
+  }
+  .wdp-dl-row:first-child { border-top: none; padding-top: 0; }
+  .wdp-dt {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted, #aaa);
+    margin-bottom: 0.3rem;
+  }
+  .wdp-dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--color-ink, #222);
+    line-height: 1.5;
+  }
+  .wdp-dd--break { word-break: break-all; }
+
+  /* status pill */
+  .wdp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    color: #2d9e6b;
+  }
+  .wdp-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2d9e6b;
+    flex-shrink: 0;
+    animation: wdp-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes wdp-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .wdp-divider {
+    height: 1px;
+    background: var(--color-line, #e6e6e2);
+    margin: 1.5rem 0;
+  }
+  .wdp-card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-accent, #4f6ef7);
+    text-decoration: none;
+    transition: gap 0.2s, opacity 0.2s;
+    gap: 0.5rem;
+  }
+  .wdp-card-cta:hover { opacity: 0.7; }
+  .wdp-card-cta svg { flex-shrink: 0; }
+`;

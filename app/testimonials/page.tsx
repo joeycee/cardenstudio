@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function TestimonialsPage() {
-  const testimonials = await getTestimonials().catch(() => []);
+  const testimonials = await getTestimonials();
 
   return (
     <>
@@ -49,69 +49,20 @@ export default async function TestimonialsPage() {
               ))}
             </div>
           ) : (
-            /* Placeholder state — looks designed, not broken */
-            <div className="grid gap-6 lg:grid-cols-2">
-              {[
-                {
-                  quote: "The site launched on time and immediately felt like the premium product we wanted. Exactly what we needed from a studio partner.",
-                  author: "Client name",
-                  role: "Founder, Studio Co.",
-                },
-                {
-                  quote: "Working directly with the founder meant fast decisions, no fluff, and a result we're genuinely proud to show prospects.",
-                  author: "Client name",
-                  role: "Director, Agency Ltd.",
-                },
-                {
-                  quote: "Practical, clear, and beautifully built. The process was as calm and considered as the final product.",
-                  author: "Client name",
-                  role: "CEO, Startup NZ",
-                },
-                {
-                  quote: "We came in with a rough brief and left with a sharp, credible web presence that's already converting better than the old site.",
-                  author: "Client name",
-                  role: "Co-founder, Ventures AU",
-                },
-              ].map((t) => (
-                <div
-                  key={t.author + t.role}
-                  className="rounded-2xl p-8"
-                  style={{
-                    background: "var(--color-bg)",
-                    border: "1px solid var(--color-line)",
-                  }}
-                >
-                  <p
-                    className="font-serif text-4xl leading-none"
-                    style={{ color: "var(--color-accent)", opacity: 0.5 }}
-                  >
-                    &ldquo;
-                  </p>
-                  <p
-                    className="mt-3 text-base leading-[1.85]"
-                    style={{ color: "var(--color-ink)" }}
-                  >
-                    {t.quote}
-                  </p>
-                  <div
-                    className="mt-6 flex items-center gap-4 border-t pt-6"
-                    style={{ borderColor: "var(--color-line)" }}
-                  >
-                    <div
-                      className="h-9 w-9 shrink-0 rounded-full"
-                      style={{ background: "var(--color-accent-light)" }}
-                    />
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: "var(--color-ink)" }}>
-                        {t.author}
-                      </p>
-                      <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-                        {t.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div
+              className="rounded-2xl p-12 text-center"
+              style={{
+                background: "var(--color-bg)",
+                border: "1px solid var(--color-line)",
+              }}
+            >
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-accent)]">
+                No testimonials published yet
+              </p>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-[var(--color-muted)]">
+                This page now renders live testimonial entries from the API and will populate as
+                soon as records are available.
+              </p>
             </div>
           )}
         </Container>
