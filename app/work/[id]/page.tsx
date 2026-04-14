@@ -5,7 +5,7 @@ import { AnimatedBlock } from "./animated-block";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { getPortfolioProjectById } from "@/lib/api";
-import { formatDate, resolveAssetUrl, splitParagraphs } from "@/lib/utils";
+import { resolveAssetUrl, splitParagraphs } from "@/lib/utils";
 
 /* ─── types ─── */
 type WorkDetailPageProps = {
@@ -32,7 +32,6 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
 
   const imageUrl = resolveAssetUrl(project.featured_image);
   const paragraphs = splitParagraphs(project.full_description);
-  const createdDate = formatDate(project.created_at);
 
   return (
     <>
@@ -94,59 +93,13 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
             </AnimatedBlock>
           )}
 
-          {/* ── body + sidebar ── */}
+          {/* ── body ── */}
           <div className="wdp-body">
-
-            {/* prose */}
             <AnimatedBlock delay={320} className="wdp-prose">
               {paragraphs.map((p, i) => (
                 <p key={i} className="wdp-paragraph">{p}</p>
               ))}
             </AnimatedBlock>
-
-            {/* sidebar */}
-            <AnimatedBlock delay={400} className="wdp-sidebar">
-              <div className="wdp-card">
-                <p className="wdp-card-heading">Project details</p>
-
-                <dl className="wdp-dl">
-                  <div className="wdp-dl-row">
-                    <dt className="wdp-dt">ID</dt>
-                    <dd className="wdp-dd">{project.id}</dd>
-                  </div>
-                  <div className="wdp-dl-row">
-                    <dt className="wdp-dt">Slug</dt>
-                    <dd className="wdp-dd wdp-dd--break">{project.slug}</dd>
-                  </div>
-                  {createdDate && (
-                    <div className="wdp-dl-row">
-                      <dt className="wdp-dt">Added</dt>
-                      <dd className="wdp-dd">{createdDate}</dd>
-                    </div>
-                  )}
-                  <div className="wdp-dl-row">
-                    <dt className="wdp-dt">Status</dt>
-                    <dd className="wdp-dd">
-                      <span className="wdp-status">
-                        <span className="wdp-status-dot" aria-hidden />
-                        Active
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-
-                {/* divider */}
-                <div className="wdp-divider" aria-hidden />
-
-                <a href={project.project_url ?? "#"} className="wdp-card-cta">
-                  Open project
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                    <path d="M1 11L11 1M11 1H4M11 1V8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              </div>
-            </AnimatedBlock>
-
           </div>
         </Container>
       </article>
@@ -238,19 +191,27 @@ const css = `
   .wdp-image-wrap {
     position: relative;
     margin-bottom: 4rem;
+    max-width: 56rem;
+    margin-inline: auto;
   }
   .wdp-image-inner {
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 1.25rem;
     border: 1px solid var(--color-line, #e8e8e4);
     background: var(--color-surface, #f3f3f0);
-    aspect-ratio: 16/9;
+    min-height: 20rem;
+    max-height: min(70vh, 40rem);
+    padding: clamp(0.75rem, 2vw, 1.25rem);
   }
   .wdp-image {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    max-height: calc(min(70vh, 40rem) - clamp(1.5rem, 4vw, 2.5rem));
+    object-fit: contain;
     display: block;
     transition: transform 0.6s ease;
   }
@@ -277,14 +238,22 @@ const css = `
     border: 1px solid rgba(255,255,255,0.6);
   }
 
+  @media (max-width: 640px) {
+    .wdp-image-wrap {
+      max-width: 100%;
+    }
+    .wdp-image-inner {
+      min-height: 14rem;
+      max-height: 24rem;
+    }
+    .wdp-image {
+      max-height: calc(24rem - 1.5rem);
+    }
+  }
+
   /* body grid */
   .wdp-body {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
-  @media (min-width: 900px) {
-    .wdp-body { grid-template-columns: minmax(0, 1fr) 22rem; gap: 5rem; }
+    max-width: 46rem;
   }
 
   /* prose */
@@ -297,84 +266,4 @@ const css = `
     margin: 0 0 1.5rem;
   }
   .wdp-paragraph:last-child { margin-bottom: 0; }
-
-  /* sidebar card */
-  .wdp-card {
-    background: var(--color-surface, #f5f5f2);
-    border: 1px solid var(--color-line, #e6e6e2);
-    border-radius: 1rem;
-    padding: 1.75rem;
-    position: sticky;
-    top: 2rem;
-  }
-  .wdp-card-heading {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--color-muted, #999);
-    margin: 0 0 1.5rem;
-  }
-  .wdp-dl { margin: 0; }
-  .wdp-dl-row {
-    padding: 0.85rem 0;
-    border-top: 1px solid var(--color-line, #ececea);
-  }
-  .wdp-dl-row:first-child { border-top: none; padding-top: 0; }
-  .wdp-dt {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-muted, #aaa);
-    margin-bottom: 0.3rem;
-  }
-  .wdp-dd {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 400;
-    color: var(--color-ink, #222);
-    line-height: 1.5;
-  }
-  .wdp-dd--break { word-break: break-all; }
-
-  /* status pill */
-  .wdp-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8125rem;
-    color: #2d9e6b;
-  }
-  .wdp-status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #2d9e6b;
-    flex-shrink: 0;
-    animation: wdp-pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes wdp-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.85); }
-  }
-
-  .wdp-divider {
-    height: 1px;
-    background: var(--color-line, #e6e6e2);
-    margin: 1.5rem 0;
-  }
-  .wdp-card-cta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-accent, #4f6ef7);
-    text-decoration: none;
-    transition: gap 0.2s, opacity 0.2s;
-    gap: 0.5rem;
-  }
-  .wdp-card-cta:hover { opacity: 0.7; }
-  .wdp-card-cta svg { flex-shrink: 0; }
 `;
